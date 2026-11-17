@@ -1,0 +1,17 @@
+{
+  "name": "GD Krillion — rare Geometry Dash level game",
+  "short_name": "GD Krillion",
+  "description": "Five rounds. Name a level for each difficulty. Rarer levels score higher.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#050a14",
+  "theme_color": "#050a14",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

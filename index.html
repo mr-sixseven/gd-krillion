@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>GD Krillion — Name a level. Chase the rare.</title>
+  <meta name="description" content="Five rounds. Pick a Geometry Dash level for each difficulty. The rarer the level, the higher your score.">
+  <meta name="theme-color" content="#050a14">
+  <meta property="og:title" content="GD Krillion 1.0.0">
+  <meta property="og:description" content="Five rounds of rare Geometry Dash level hunting.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="icon.svg">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-phase="intro">
+  <div class="crt" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="ambient" aria-hidden="true"></div>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="GD Krillion">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" focusable="false">
+            <path fill="#4de3ff" d="M10 2h12v4h4v4h4v12h-4v4h-4v4H10v-4H6v-4H2V10h4V6h4z"/>
+            <path fill="#0b1526" d="M10 8h12v4h4v8h-4v4H10v-4H6v-8h4z"/>
+            <path fill="#ff5d8f" d="M12 10h8v4h2v4h-2v4h-8v-4h-2v-4h2z"/>
+            <path fill="#ffd166" d="M14 13h4v6h-4z"/>
+          </svg>
+        </span>
+        <span class="brand-word">GD <b>KRILLION</b></span>
+      </div>
+      <div class="top-actions">
+        <span class="version-chip">V1.0.0</span>
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Mute sounds" aria-pressed="false" title="Sound on">
+          <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+          <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>
+        </button>
+        <button class="icon-btn" id="helpBtn" type="button" aria-label="How to play" title="How to play">?</button>
+      </div>
+    </header>
+
+    <main class="stage" id="stage">
+      <div class="hud" id="hud" aria-hidden="true">
+        <div class="hud-pod">
+          <span>ROUND</span>
+          <strong><span id="hudRound">1</span><i>/5</i></strong>
+        </div>
+        <div class="round-progress">
+          <div class="round-dots" id="roundDots"></div>
+          <span id="hudPhase">READY?</span>
+        </div>
+        <div class="hud-pod hud-pod--right">
+          <span>LIVE AVG</span>
+          <strong id="hudAvg">--.--</strong>
+        </div>
+      </div>
+
+      <!-- INTRO -->
+      <section class="intro-screen" id="introScreen" aria-labelledby="introTitle">
+        <p class="eyebrow">FIVE ROUNDS · ONE RARE ANSWER EACH</p>
+        <h1 class="hero-title" id="introTitle" aria-label="GD Krillion">
+          <span class="hero-word" aria-hidden="true"><span style="--letter:0">K</span><span style="--letter:1">R</span><span style="--letter:2">I</span><span style="--letter:3">L</span><span style="--letter:4">L</span><span style="--letter:5">I</span><span style="--letter:6">O</span><span style="--letter:7">N</span></span>
+        </h1>
+        <p class="tagline">NAME A LEVEL. CHASE THE RARE.</p>
+        <p class="subline">Each round asks for something different. The less downloaded and less liked the level is, the higher your rarity score.</p>
+        <div class="type-strip" aria-label="Question types in every run">
+          <span><b>DIFFICULTY</b></span>
+          <span><b>SONG</b></span>
+          <span><b>LIST DEMON</b></span>
+          <span><b>LEVEL TRAITS</b></span>
+        </div>
+        <button class="pixel-btn pixel-btn--primary start-btn" id="startBtn" type="button">START DIVING</button>
+        <p class="intro-foot">LEVEL DATA FROM GDBROWSER · FIVE-ROUND RUN</p>
+      </section>
+
+      <!-- PLAY -->
+      <section class="play-screen" id="playScreen" hidden aria-label="Current round">
+        <div class="prompt-card pixel-frame" id="promptCard">
+          <p class="eyebrow">ROUND <span id="promptRound">1</span> OF 5 · <span id="promptKind">DIFFICULTY</span></p>
+          <h2 id="promptText">Name a <span class="diff-chip" id="targetDiff">Easy</span> level</h2>
+          <p class="hint" id="promptHint">Any level with this difficulty counts. Obscure ones score bigger.</p>
+        </div>
+
+        <form class="answer-dock" id="answerForm" autocomplete="off">
+          <label class="sr-only" for="levelInput">Level name</label>
+          <div class="input-wrap">
+            <input id="levelInput" name="level" type="text" inputmode="search" maxlength="80"
+                   placeholder="Type a level name…" autocomplete="off" autocorrect="off"
+                   autocapitalize="off" spellcheck="false" aria-describedby="status">
+            <span class="input-bar" aria-hidden="true"></span>
+          </div>
+          <button class="pixel-btn pixel-btn--submit" id="submitBtn" type="submit">
+            <span class="btn-spinner" aria-hidden="true"></span>
+            <span class="btn-label" id="submitLabel">SUBMIT</span>
+          </button>
+        </form>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+        <p class="used-line" id="usedLine">LEVELS USED <b id="usedCount">0</b> / 5</p>
+
+        <div class="landing pixel-frame" id="roundResult" hidden aria-live="polite">
+          <p class="eyebrow landing-kicker">LEVEL LOCKED IN</p>
+          <h3 class="landing-name" id="foundName">—</h3>
+          <p class="landing-meta" id="foundMeta">—</p>
+          <p class="landing-match" id="foundMatch">MATCHED · —</p>
+
+          <div class="score-block">
+            <span class="score-label">ROUND RARITY</span>
+            <div class="big-score" id="roundScore">0.00</div>
+            <span class="score-sub">OUT OF 100.00</span>
+          </div>
+          <p class="landing-quip" id="landQuip">A solid dive.</p>
+
+          <div class="breakdown">
+            <div class="break-row">
+              <span>DOWNLOAD RARITY</span>
+              <div class="meter"><i id="dlMeter"></i></div>
+              <b id="dlScore">0.00</b>
+            </div>
+            <div class="break-row">
+              <span>LIKE RARITY</span>
+              <div class="meter"><i id="lkMeter"></i></div>
+              <b id="lkScore">0.00</b>
+            </div>
+          </div>
+
+          <button class="pixel-btn pixel-btn--primary" id="nextBtn" type="button">NEXT ROUND</button>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section class="results" id="resultsScreen" hidden tabindex="-1" aria-labelledby="resultsTitle">
+        <div class="result-head">
+          <span class="result-brand">GD KRILLION</span>
+          <span class="result-meta">5 ROUNDS COMPLETE</span>
+        </div>
+
+        <h2 class="sr-only" id="resultsTitle">Your results</h2>
+        <div class="final-score">
+          <strong id="finalScore">0.00</strong>
+          <div>
+            <span>AVERAGE RARITY</span>
+            <small>PERSONAL BEST <b id="bestScore">--.--</b></small>
+          </div>
+        </div>
+
+        <div class="rule">DIVE PROFILE</div>
+        <div class="dive-chart" id="chart" aria-hidden="true"></div>
+
+        <div class="rule">ROUND LOG</div>
+        <ul class="summary" id="summary"></ul>
+
+        <div class="result-actions">
+          <button class="pixel-btn pixel-btn--primary" id="againBtn" type="button">PLAY AGAIN</button>
+          <button class="pixel-btn" id="shareBtn" type="button">SHARE</button>
+        </div>
+
+        <p class="result-foot">Unofficial fan project · Level data from GDBrowser · Geometry Dash © RobTop Games · Visual style inspired by OpenKrillion</p>
+      </section>
+    </main>
+  </div>
+
+  <dialog class="panel" id="helpDialog" aria-labelledby="helpTitle">
+    <button class="close" id="helpClose" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">DIVE MANUAL</p>
+    <h2 id="helpTitle">How to play</h2>
+    <ol class="how-list">
+      <li><span class="num">1</span><span>You get <b>five rounds</b>, each with a different kind of prompt.</span></li>
+      <li><span class="num">2</span><span>Type a level name and submit. <b>GDBrowser</b> checks it against the prompt. Each hint points at a valid example.</span></li>
+      <li><span class="num">3</span><span>The rarer the level — fewer downloads and likes — the higher the round score, up to 100.</span></li>
+      <li><span class="num">4</span><span>Each level can only be used <b>once</b> per run. Your final score is the average of all five rounds.</span></li>
+    </ol>
+    <div class="rule">QUESTION TYPES</div>
+    <p class="panel-copy">A run mixes <b>Difficulty</b> (name a level of that difficulty), <b>Song</b> (name a level using the named track — the hint gives one), <b>Demon List</b> (any demon on the current top-100 community list), and <b>Level Traits</b> like length, star rating, featured/epic/legendary, two-player, game version and user coins.</p>
+    <div class="rule">SCORING</div>
+    <p class="panel-copy">Rarity uses a <b>softened logarithmic curve</b> with the same boundaries as the beta: <b>2,000 → 100,000,000 downloads</b> and <b>1 → 4,000,000 likes</b>. A level at the bottom of a range scores 100; one at the top scores 0, but the middle is far more forgiving. Download and like rarity are averaged for the round score.</p>
+    <p class="panel-signoff">GD Krillion 1.0.0 · Not affiliated with RobTop Games or Krillion.</p>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="audio.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>
