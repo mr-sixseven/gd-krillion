@@ -1,4 +1,4 @@
-/* GD Krillion 1.0.0 — tiny synthesized sound engine (Web Audio API).
+/* GD Krillion 1.1.0 — tiny synthesized sound engine (Web Audio API).
  * No audio files: every cue is generated with oscillators and noise buffers.
  * Exposes window.GDKSfx.
  */

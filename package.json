@@ -1,0 +1,9 @@
+{
+  "name": "gd-krillion",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Five-round Geometry Dash rare-level trivia with live GDHistory fallback.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

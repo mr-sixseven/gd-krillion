@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>GD Krillion — Name a level. Chase the rare.</title>
-  <meta name="description" content="Five rounds. Pick a Geometry Dash level for each difficulty. The rarer the level, the higher your score.">
+  <meta name="description" content="Five rounds of Geometry Dash trivia: difficulties, Demon List demons, gauntlets, creators and rare levels.">
   <meta name="theme-color" content="#050a14">
-  <meta property="og:title" content="GD Krillion 1.0.0">
+  <meta property="og:title" content="GD Krillion 1.1.0">
   <meta property="og:description" content="Five rounds of rare Geometry Dash level hunting.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="icon.svg">
@@ -33,10 +33,13 @@
         <span class="brand-word">GD <b>KRILLION</b></span>
       </div>
       <div class="top-actions">
-        <span class="version-chip">V1.0.0</span>
+        <span class="version-chip">V1.1.0</span>
         <button class="icon-btn" id="soundBtn" type="button" aria-label="Mute sounds" aria-pressed="false" title="Sound on">
           <svg class="sound-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
           <svg class="sound-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="m17 9 5 6M22 9l-5 6"/></svg>
+        </button>
+        <button class="icon-btn" id="settingsBtn" type="button" aria-label="Settings" aria-haspopup="dialog" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.6a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.03a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15z"/></svg>
         </button>
         <button class="icon-btn" id="helpBtn" type="button" aria-label="How to play" title="How to play">?</button>
       </div>
@@ -58,6 +61,8 @@
         </div>
       </div>
 
+      <div class="offline-banner" id="offlineBanner" hidden role="status" aria-live="polite">[NO INTERNET! DEFAULTING TO LOCAL LEVELS]</div>
+
       <!-- INTRO -->
       <section class="intro-screen" id="introScreen" aria-labelledby="introTitle">
         <p class="eyebrow">FIVE ROUNDS · ONE RARE ANSWER EACH</p>
@@ -66,14 +71,15 @@
         </h1>
         <p class="tagline">NAME A LEVEL. CHASE THE RARE.</p>
         <p class="subline">Each round asks for something different. The less downloaded and less liked the level is, the higher your rarity score.</p>
-        <div class="type-strip" aria-label="Question types in every run">
+        <div class="type-strip" aria-label="Question categories">
           <span><b>DIFFICULTY</b></span>
-          <span><b>SONG</b></span>
           <span><b>LIST DEMON</b></span>
-          <span><b>LEVEL TRAITS</b></span>
+          <span><b>GAUNTLET</b></span>
+          <span><b>CREATOR</b></span>
+          <span><b>TRIVIA</b></span>
         </div>
         <button class="pixel-btn pixel-btn--primary start-btn" id="startBtn" type="button">START DIVING</button>
-        <p class="intro-foot">LEVEL DATA FROM GDBROWSER · FIVE-ROUND RUN</p>
+        <p class="intro-foot">VERIFIED LEVEL DATA · GDBROWSER + GDHISTORY SNAPSHOT · FIVE-ROUND RUN</p>
       </section>
 
       <!-- PLAY -->
@@ -99,10 +105,16 @@
         </form>
 
         <div class="status" id="status" role="status" aria-live="polite"></div>
+        <div class="suggestion" id="suggestion" hidden role="status" aria-live="polite">
+          <span>DID YOU MEAN</span>
+          <button class="suggest-yes" id="suggestYes" type="button"></button>
+          <span>?</span>
+          <button class="suggest-no" id="suggestNo" type="button">NO</button>
+        </div>
         <p class="used-line" id="usedLine">LEVELS USED <b id="usedCount">0</b> / 5</p>
 
         <div class="landing pixel-frame" id="roundResult" hidden aria-live="polite">
-          <p class="eyebrow landing-kicker">LEVEL LOCKED IN</p>
+          <p class="eyebrow landing-kicker" id="roundTier">PLANKTON · 10 PTS</p>
           <h3 class="landing-name" id="foundName">—</h3>
           <p class="landing-meta" id="foundMeta">—</p>
           <p class="landing-match" id="foundMatch">MATCHED · —</p>
@@ -110,7 +122,7 @@
           <div class="score-block">
             <span class="score-label">ROUND RARITY</span>
             <div class="big-score" id="roundScore">0.00</div>
-            <span class="score-sub">OUT OF 100.00</span>
+            <span class="score-sub" id="scoreSub">OUT OF 100.00</span>
           </div>
           <p class="landing-quip" id="landQuip">A solid dive.</p>
 
@@ -146,6 +158,7 @@
             <small>PERSONAL BEST <b id="bestScore">--.--</b></small>
           </div>
         </div>
+        <p class="final-tier" id="finalTier">PLANKTON · 10 PTS</p>
 
         <div class="rule">DIVE PROFILE</div>
         <div class="dive-chart" id="chart" aria-hidden="true"></div>
@@ -168,21 +181,46 @@
     <p class="eyebrow">DIVE MANUAL</p>
     <h2 id="helpTitle">How to play</h2>
     <ol class="how-list">
-      <li><span class="num">1</span><span>You get <b>five rounds</b>, each with a different kind of prompt.</span></li>
-      <li><span class="num">2</span><span>Type a level name and submit. <b>GDBrowser</b> checks it against the prompt. Each hint points at a valid example.</span></li>
+      <li><span class="num">1</span><span>You get <b>five rounds</b>. Every run mixes a Difficulty, a List Demon and three rotating bonus categories.</span></li>
+      <li><span class="num">2</span><span>Type a level name and submit. <b>GDBrowser</b> verifies it against the prompt; if unavailable, the app fetches <b>GDHistory</b> live before using a verified offline snapshot. If the exact name still doesn't verify, you'll get a <b>Did you mean?</b> prompt — press Yes to accept the suggested level.</span></li>
       <li><span class="num">3</span><span>The rarer the level — fewer downloads and likes — the higher the round score, up to 100.</span></li>
-      <li><span class="num">4</span><span>Each level can only be used <b>once</b> per run. Your final score is the average of all five rounds.</span></li>
+      <li><span class="num">4</span><span>Levels can repeat across rounds. Your final score is the average of all five rounds.</span></li>
     </ol>
-    <div class="rule">QUESTION TYPES</div>
-    <p class="panel-copy">A run mixes <b>Difficulty</b> (name a level of that difficulty), <b>Song</b> (name a level using the named track — the hint gives one), <b>Demon List</b> (any demon on the current top-100 community list), and <b>Level Traits</b> like length, star rating, featured/epic/legendary, two-player, game version and user coins.</p>
-    <div class="rule">SCORING</div>
-    <p class="panel-copy">Rarity uses a <b>softened logarithmic curve</b> with the same boundaries as the beta: <b>2,000 → 100,000,000 downloads</b> and <b>1 → 4,000,000 likes</b>. A level at the bottom of a range scores 100; one at the top scores 0, but the middle is far more forgiving. Download and like rarity are averaged for the round score.</p>
-    <p class="panel-signoff">GD Krillion 1.0.0 · Not affiliated with RobTop Games or Krillion.</p>
+    <div class="rule">QUESTION CATEGORIES</div>
+    <p class="panel-copy"><b>Difficulty</b> — a level of that difficulty. <b>Demon List</b> — a demon in the current Pointercrate top 150 by list position or rated rank. <b>Gauntlet</b> — one of the five levels in a named Gauntlet. <b>Creator</b> — a rated level by that creator. <b>Trivia</b> — official soundtrack, two-player, featured, epic, star count, length, name shape and rated platformer puzzles.</p>
+    <div class="rule">RARITY &amp; VALIDITY</div>
+    <p class="panel-copy">Rarity uses a <b>very soft logarithmic curve</b> with the beta boundaries: <b>2,000 → 100,000,000 downloads</b> and <b>1 → 4,000,000 likes</b>, averaged into a 0–100 round score. Popular levels still score respectably.</p>
+    <p class="panel-copy">Krillion tier names are <b>score bands</b>, not prompt difficulties: <b>0–10 Plankton</b>, <b>11–15 Too Clever</b>, <b>16–30 Schooler</b>, <b>31–60 Rare</b>, <b>61–98 Deep Cut</b>, <b>99–100 One in a Krillion</b>. <b>Show Tier Names</b> is on by default; turn on <b>Show Exact Numbers</b> in Settings to display tier and number together, or switch tier names off for numbers only.</p>
+    <p class="panel-copy">Only <b>rated, public, non-deleted levels</b> ever count. Creator and gauntlet answers are checked against their exact IDs or fields — no unrated levels, no invented data.</p>
+    <p class="panel-signoff">GD Krillion 1.1.0 · Not affiliated with RobTop Games or Krillion.</p>
+  </dialog>
+
+  <dialog class="panel" id="settingsDialog" aria-labelledby="settingsTitle">
+    <button class="close" id="settingsClose" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">DIVE CONFIG</p>
+    <h2 id="settingsTitle">Settings</h2>
+    <label class="setting-row" for="showTierNamesToggle">
+      <span class="setting-copy">
+        <b>Show Tier Names</b>
+        <small>Show the Krillion score-band name on the HUD, rounds and results.</small>
+      </span>
+      <input class="pixel-switch" id="showTierNamesToggle" type="checkbox" checked>
+    </label>
+    <label class="setting-row" for="showExactNumbersToggle">
+      <span class="setting-copy">
+        <b>Show Exact Numbers</b>
+        <small>Also show the two-decimal rarity (0.00–100.00).</small>
+      </span>
+      <input class="pixel-switch" id="showExactNumbersToggle" type="checkbox">
+    </label>
+    <p class="panel-copy">Tier names are on by default. Enable exact numbers for both, or turn tier names off for numbers only. At least one display always stays on.</p>
+    <p class="panel-signoff">Saved on this browser.</p>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="audio.js" defer></script>
+  <script src="catalog.js" defer></script>
   <script src="app.js" defer></script>
 </body>
 </html>

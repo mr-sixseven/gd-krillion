@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gap Prototype</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; display: grid; place-items: center;
+      background: #06101d; color: #dbe8ff;
+      font: 16px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    main {
+      width: min(92vw, 520px); padding: 24px;
+      background: #0b1729; border: 2px solid #244466; box-shadow: 0 0 40px #0008;
+    }
+    h1 { margin: 0 0 6px; color: #4de3ff; font-size: 20px; letter-spacing: .18em; }
+    p { margin: 0; color: #8fa3c4; line-height: 1.5; }
+    .meta {
+      display: flex; justify-content: space-between; gap: 12px;
+      margin-top: 10px; color: #8fa3c4; font-size: 12px; letter-spacing: .08em;
+    }
+    #timer { color: #ff9f43; }
+    .mask {
+      margin: 24px 0 8px; color: #ffd166;
+      font-size: clamp(24px, 6.4vw, 38px); letter-spacing: .1em; word-break: break-all;
+    }
+    .author { margin-bottom: 20px; color: #8fa3c4; }
+    form { display: flex; gap: 8px; }
+    input, button {
+      min-width: 0; padding: 12px; border: 2px solid #244466;
+      background: #07101d; color: #dbe8ff; font: inherit;
+    }
+    input { flex: 1; }
+    button { color: #4de3ff; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: wait; }
+    button:hover:not(:disabled) { border-color: #4de3ff; }
+    .stats { min-height: 22px; margin-top: 12px; color: #8fa3c4; font-size: 13px; }
+    .msg { min-height: 24px; margin-top: 6px; }
+    .ok { color: #7dffb2; }
+    .no { color: #ff7b8a; }
+    .small { margin-top: 16px; font-size: 12px; opacity: .7; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>GAP PROTOTYPE</h1>
+    <p id="count">LOADING…</p>
+    <div class="meta"><span id="source">LOADING LIVE LEVELS…</span><span id="timer">--</span></div>
+    <div class="mask" id="mask">…</div>
+    <div class="author" id="author"></div>
+    <form id="form" autocomplete="off">
+      <input id="input" placeholder="Full level name" autocomplete="off" spellcheck="false" disabled>
+      <button id="button" type="submit" disabled>LOADING</button>
+    </form>
+    <div class="stats" id="stats"></div>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <p class="small">25 seconds · wrong answer reveals one letter · Enter works</p>
+  </main>
+  <script>
+    const API = 'https://gdbrowser.com/api/search/';
+    const SEEDS = ['a', 'e', 'i', 'o', 'u', 'r', 's', 't', 'l'];
+    const FALLBACK = [
+      { mask: 'bl___bath', answer: 'Bloodbath', author: 'Riot', difficulty: 'Extreme Demon', downloads: 197705466, likes: 5688972 },
+      { mask: 'th____htmare', answer: 'The Nightmare', author: 'Jax', difficulty: 'Easy Demon', downloads: 180420856, likes: 6354436 },
+      { mask: 'ou___space', answer: 'OuterSpace', author: 'Nicki1202', difficulty: 'Hard', downloads: 180038138, likes: 6501967 },
+      { mask: 'ni___ircles', answer: 'Nine Circles', author: 'Zobros', difficulty: 'Hard Demon', downloads: 133371540, likes: 4025320 },
+      { mask: 'le___easy', answer: 'Level Easy', author: 'Cody', difficulty: 'Normal', downloads: 115963202, likes: 4579651 },
+      { mask: 'ac___actory', answer: 'Acid Factory', author: 'UsernameDefault', difficulty: 'Hard', downloads: 113257187, likes: 3808093 },
+      { mask: 'da____radise', answer: 'Dark Paradise', author: 'Roli GD', difficulty: 'Easy', downloads: 103286833, likes: 5642678 },
+      { mask: 'dr___land', answer: 'Dreamland', author: 'Scanbrux', difficulty: 'Hard', downloads: 88922876, likes: 2720500 }
+    ];
+    const $ = (id) => document.getElementById(id);
+    const compact = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const fmt = (n) => Number(n || 0).toLocaleString();
+    const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+    let puzzles = [], i = 0, score = 0, attempt = 0, seconds = 25, answered = false, shownMask = [], timer = null;
+
+    function makePuzzle(level) {
+      const key = compact(level.name);
+      if (key.length < 6 || key.length > 14 || !/^[a-z0-9]+$/.test(key)) return null;
+      const chars = [...key];
+      const start = key.length >= 8 ? 2 : 1;
+      const gap = Math.min(4, Math.max(3, Math.floor(key.length / 3)));
+      if (start + gap >= chars.length) return null;
+      const mask = chars.map((c, n) => (n >= start && n < start + gap ? '_' : c)).join('');
+      return {
+        mask, answer: String(level.name), author: String(level.author || ''),
+        difficulty: String(level.difficulty || ''), song: String(level.songName || ''),
+        downloads: Number(level.downloads || 0), likes: Number(level.likes || 0)
+      };
+    }
+    async function fetchSeed(seed) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      try {
+        const res = await fetch(API + seed, { signal: controller.signal, headers: { Accept: 'application/json' } });
+        if (!res.ok) return [];
+        const data = await res.json();
+        return Array.isArray(data) ? data : [];
+      } catch { return []; }
+      finally { clearTimeout(timeout); }
+    }
+    async function loadPuzzles() {
+      let live = [];
+      try {
+        const groups = await Promise.all(SEEDS.map(fetchSeed));
+        live = groups.flat()
+          .filter((l) => l && Number(l.stars) >= 1 && !/^auto$/i.test(String(l.difficulty || '')))
+          .map(makePuzzle)
+          .filter(Boolean);
+      } catch { /* use the hardcoded fallback */ }
+      const seen = new Set();
+      live = live.filter((p) => {
+        const key = compact(p.answer);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      if (live.length < 8) return { list: shuffle(FALLBACK).slice(0, 8), source: 'LOCAL FALLBACK' };
+      return { list: shuffle(live).slice(0, 8), source: 'LIVE GDBROWSER' };
+    }
+
+    function hintFor(p, round) {
+      const kind = ['author', 'difficulty', 'song'][round % 3];
+      if (kind === 'difficulty' && p.difficulty) return `${p.difficulty} level`;
+      if (kind === 'song' && p.song) return `Song: ${p.song}`;
+      return p.author ? `by ${p.author}` : 'No hint this round';
+    }
+    function stopTimer() { if (timer) clearInterval(timer); timer = null; }
+    function startTimer() {
+      stopTimer();
+      timer = setInterval(() => {
+        seconds--;
+        $('timer').textContent = String(Math.max(0, seconds));
+        if (seconds <= 0) timeUp();
+      }, 1000);
+    }
+    function revealOne() {
+      const p = puzzles[i];
+      const key = compact(p.answer);
+      for (let n = 0; n < shownMask.length; n++) {
+        if (shownMask[n] === '_') {
+          shownMask[n] = key[n] || '_';
+          $('mask').textContent = shownMask.join('').toUpperCase();
+          return true;
+        }
+      }
+      return false;
+    }
+    function finishAnswer(ok, message) {
+      stopTimer();
+      answered = true;
+      if (ok) score++;
+      const p = puzzles[i];
+      $('msg').textContent = message;
+      $('msg').className = `msg ${ok ? 'ok' : 'no'}`;
+      $('stats').textContent = `${fmt(p.downloads)} downloads · ${fmt(p.likes)} likes`;
+      $('input').disabled = true;
+      $('button').textContent = i + 1 < puzzles.length ? 'NEXT' : 'FINISH';
+      if (i + 1 === puzzles.length) $('count').textContent = `FINAL SCORE · ${score}/${puzzles.length}`;
+    }
+    function timeUp() {
+      if (answered) return;
+      const p = puzzles[i];
+      $('mask').textContent = compact(p.answer).toUpperCase();
+      finishAnswer(false, `TIME! ANSWER: ${p.answer}`);
+    }
+    function finish() {
+      stopTimer();
+      $('count').textContent = `FINAL SCORE · ${score}/${puzzles.length}`;
+      $('mask').textContent = 'DONE';
+      $('author').textContent = 'Press RESTART to play again';
+      $('stats').textContent = $('source').textContent;
+      $('msg').textContent = '';
+      $('input').hidden = true;
+      $('button').textContent = 'RESTART';
+      i = puzzles.length;
+      answered = true;
+    }
+    function show() {
+      const p = puzzles[i];
+      if (!p) { finish(); return; }
+      shownMask = [...p.mask.toLowerCase()];
+      attempt = 0;
+      answered = false;
+      seconds = 25;
+      $('count').textContent = `ROUND ${i + 1}/${puzzles.length} · SCORE ${score}`;
+      $('timer').textContent = '25';
+      $('mask').textContent = shownMask.join('').toUpperCase();
+      $('author').textContent = hintFor(p, i);
+      $('stats').textContent = '';
+      $('msg').textContent = '';
+      $('msg').className = 'msg';
+      $('input').value = '';
+      $('input').hidden = false;
+      $('input').disabled = false;
+      $('button').textContent = 'CHECK';
+      startTimer();
+      try { $('input').focus(); } catch {}
+    }
+
+    $('form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (i >= puzzles.length) { i = 0; score = 0; show(); return; }
+      if (answered) { i++; show(); return; }
+      const p = puzzles[i];
+      if (compact($('input').value) === compact(p.answer)) {
+        finishAnswer(true, `CORRECT · ${Math.max(0, seconds)}s LEFT`);
+        return;
+      }
+      attempt++;
+      const revealed = revealOne();
+      $('input').value = '';
+      $('msg').textContent = revealed ? 'NOT QUITE — +1 LETTER' : 'NO MORE LETTERS — TYPE IT';
+      $('msg').className = 'no';
+      try { $('input').focus(); } catch {}
+    });
+
+    loadPuzzles().then(({ list, source }) => {
+      puzzles = list;
+      $('source').textContent = source;
+      $('input').disabled = false;
+      $('button').disabled = false;
+      show();
+    });
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 {
   "name": "GD Krillion — rare Geometry Dash level game",
   "short_name": "GD Krillion",
-  "description": "Five rounds. Name a level for each difficulty. Rarer levels score higher.",
+  "description": "Five rounds of Geometry Dash trivia. Name a matching rated level and chase the rare.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050a14",
